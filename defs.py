@@ -1,0 +1,4 @@
+DATA_PATH = "../data/"
+ONTOBIOTOPE_FILE_PATH = DATA_PATH + "OntoBiotope_BioNLP-OST-2019.obo"
+DEV_PATH = DATA_PATH + "BioNLP-OST-2019_BB-norm_dev/"
+DEV_FILE = DEV_PATH + "BB-norm-1356998.a1"
