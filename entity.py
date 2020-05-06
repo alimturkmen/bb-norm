@@ -11,10 +11,11 @@ class EntityType(Enum):
 
 
 class SearchEntity:
-    def __init__(self, annotation_id: str, type: EntityType, word: str):
+    def __init__(self, annotation_id: str, type: EntityType, name: str):
         self.id = annotation_id
         self.type = type
-        self.word = word
+        self.name = name
+        self.name_list = name.split(' ')
 
 
 class SynonymType(Enum):
@@ -23,9 +24,10 @@ class SynonymType(Enum):
 
 
 class Synonym:
-    def __init__(self, type: SynonymType, word: str):
+    def __init__(self, type: SynonymType, name: str):
         self.type = type
-        self.word = word
+        self.name = name
+        self.name_list = name.split(' ')
 
 
 class Biotope:
@@ -37,5 +39,6 @@ class Biotope:
 
         self.id = onto_id
         self.name = name
+        self.name_list = []
         self.synonyms = synonyms
         self.is_as = is_as
