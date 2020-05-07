@@ -1,12 +1,12 @@
 import sys
 import defs
-import parser
+import bb_parser
 
 
 def run():
-    biotopes = parser.parse_ontobiotope_file(defs.ONTOBIOTOPE_FILE_PATH)
+    biotopes = bb_parser.parse_ontobiotope_file(defs.ONTOBIOTOPE_FILE_PATH)
 
-    search_entities = parser.parse_bb_norm_file(defs.DEV_FILE)
+    search_entities = bb_parser.parse_bb_norm_file(defs.DEV_FILE)
 
     unnecessary = None
 
