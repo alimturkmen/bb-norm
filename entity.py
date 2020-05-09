@@ -18,6 +18,14 @@ class SearchEntity:
         self.name_list = name.split(' ')
 
 
+class SearchLabel:
+    def __init__(self):
+        self.entities = {}
+
+    def add(self, annotation_id: str, term_id: str):
+        self.entities[annotation_id] = term_id
+
+
 class SynonymType(Enum):
     exact = "EXACT"
     related = "RELATED"
