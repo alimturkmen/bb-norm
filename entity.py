@@ -15,7 +15,7 @@ class SearchEntity:
         self.id = annotation_id
         self.type = type
         self.name = name
-        self.name_list = name.split(' ')
+        self.name_list = filter(lambda x: len(x) > 0, name.split(' '))
 
 
 class SearchLabel:
@@ -35,7 +35,7 @@ class Synonym:
     def __init__(self, type: SynonymType, name: str):
         self.type = type
         self.name = name
-        self.name_list = name.split(' ')
+        self.name_list = filter(lambda x: len(x) > 0, name.split(' '))
 
 
 class Biotope:
