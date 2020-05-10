@@ -87,8 +87,8 @@ def parse_ontobiotope_file(file_path):
                 elif word == "name":
                     # Extract the name part, eg 'name: hola', output will be 'hola'
                     biotope.name = line[6:]
-                    #biotope.name_list = filter(lambda x: len(x) > 0, biotope.name.split(' '))
-                    biotope.name_list = biotope.name.split(' ')
+                    biotope.name_list = list(filter(lambda x: len(x) > 0, biotope.name.split(' ')))
+
                 elif word == "synonym":
                     # Get the part after 'synonym: '
                     remaining = line[len(word) + 2:-1]
