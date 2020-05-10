@@ -3,6 +3,7 @@ import glob
 import defs
 import bb_parser
 from bb_normalizer import ExactMatch
+import bb_normalizer
 
 
 def run():
@@ -15,14 +16,19 @@ def run():
     all_entities, all_labels = bb_parser.parse_all_bb_norm_files(dev_files, dev_labels)
     preds_w = exact_match.match_all(all_entities, weighted=True)
     preds = exact_match.match_all(all_entities, weighted=False)
+    bb_normalizer.create_eval_file(preds_w, dev_files)
+
     '''
-    for idx, labels in enumerate(all_labels):
-        for i, label in enumerate(labels):
-            print(f'term:{all_entities[idx][i].name}')
-            print(f'true:{biotopes[label].name}')
-            print(f'pred_w:{biotopes[preds_w[idx][i]].name}')
-            print('pred:-1') if preds[idx][i] == '-1' else print(f'pred:{biotopes[preds[idx][i]].name}')
+    import entity
+    for i, labels in enumerate(all_labels):
+        for j, label in enumerate(labels):
+            if all_entities[i][j].type == entity.EntityType.habitat:
+                print(f'term:{all_entities[i][j].name}')
+                print(f'true:{biotopes[label].name}')
+                print(f'pred_w:{biotopes[preds_w[i][j].get("ref","")].name}')
+                print(f'pred:{biotopes[preds[i][j].get("ref","")].name}')
     '''
+    
     unnecessary = None
     
 
