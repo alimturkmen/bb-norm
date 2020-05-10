@@ -11,21 +11,31 @@ def parse_bb_label_file(file_path):
             result = re.search(".*OntoBiotope.*(T[0-9]*) Referent:OBT:([0-9]*)", line)
             if result is not None:
                 search_labels.add(result.group(1), result.group(2))
+            else:
+                result = re.search(".*NCBI_Taxonomy.*(T[0-9]*) Referent:([0-9]*)", line)
+                if result is not None:
+                    search_labels.add(result.group(1), result.group(2))
 
     return search_labels
 
 
 def parse_bb_norm_file(file_path):
     search_entities = []
-
     with open(file_path) as file:
         lines = re.split("\n", file.read())
 
         for line in lines:
-            result = re.search("(T[0-9]*)\tHabitat [0-9]* [0-9]*\t([A-Za-z0-9-_ \.]*)", line)
+            result = re.search("(T[0-9]*)\tHabitat [0-9|\s|;]*\t([A-Za-z0-9-_ \.]*)", line)
             if result is not None:
                 search_entities.append(entity.SearchEntity(result.group(1), entity.EntityType("Habitat"), result.group(2)))
-
+            else:
+                result = re.search("(T[0-9]*)\tMicroorganism [0-9|\s|;]*\t([A-Za-z0-9-_ \.]*)", line)
+                if result is not None:
+                    search_entities.append(entity.SearchEntity(result.group(1), entity.EntityType("Microorganism"), result.group(2)))
+                else:
+                    result = re.search("(T[0-9]*)\tPhenotype [0-9|\s|;]*\t([A-Za-z0-9-_ \.]*)", line)
+                    if result is not None:
+                        search_entities.append(entity.SearchEntity(result.group(1), entity.EntityType("Phenotype"), result.group(2)))
     return search_entities
 
 
@@ -33,11 +43,12 @@ def parse_all_bb_norm_files(dev_files, dev_labels):
 
     all_entities = []
     all_labels = []
+
     for idx, dev_file in enumerate(dev_files):
         search_entities = parse_bb_norm_file(dev_file)
-
         search_labels = parse_bb_label_file(dev_labels[idx])
         true_labels = []
+
         for search_entity in search_entities:
             true_labels.append(search_labels.entities[search_entity.id])
 
@@ -76,7 +87,8 @@ def parse_ontobiotope_file(file_path):
                 elif word == "name":
                     # Extract the name part, eg 'name: hola', output will be 'hola'
                     biotope.name = line[6:]
-                    biotope.name_list = filter(lambda x: len(x) > 0, biotope.name.split(' '))
+                    #biotope.name_list = filter(lambda x: len(x) > 0, biotope.name.split(' '))
+                    biotope.name_list = biotope.name.split(' ')
                 elif word == "synonym":
                     # Get the part after 'synonym: '
                     remaining = line[len(word) + 2:-1]
