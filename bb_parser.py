@@ -1,5 +1,7 @@
-import entity
 import re
+
+import entity
+
 
 def parse_bb_label_file(file_path):
     search_labels = entity.SearchLabel()
@@ -19,33 +21,32 @@ def parse_bb_label_file(file_path):
     return search_labels
 
 
-def parse_bb_norm_file(file_path):
+def parse_bb_a1_file(file_path):
     search_entities = []
     with open(file_path) as file:
         lines = re.split("\n", file.read())
 
         for line in lines:
-            result = re.search("(T[0-9]*)\tHabitat [0-9|\s|;]*\t([A-Za-z0-9-_ \.]*)", line)
-            if result is not None:
-                search_entities.append(entity.SearchEntity(result.group(1), entity.EntityType("Habitat"), result.group(2)))
-            else:
-                result = re.search("(T[0-9]*)\tMicroorganism [0-9|\s|;]*\t([A-Za-z0-9-_ \.]*)", line)
+            for type in entity.EntityType:
+                search_str = "(T[0-9]*)\t{} ([0-9]*) ([0-9]*)\t([A-Za-z0-9-_ \.]*)".format(type.value)
+                result = re.search(search_str, line)
+
                 if result is not None:
-                    search_entities.append(entity.SearchEntity(result.group(1), entity.EntityType("Microorganism"), result.group(2)))
-                else:
-                    result = re.search("(T[0-9]*)\tPhenotype [0-9|\s|;]*\t([A-Za-z0-9-_ \.]*)", line)
-                    if result is not None:
-                        search_entities.append(entity.SearchEntity(result.group(1), entity.EntityType("Phenotype"), result.group(2)))
+                    search_entities.append(entity.SearchEntity(
+                        result.group(1), entity.EntityType(type.value), result.group(4), int(result.group(2)),
+                        int(result.group(3))
+                    ))
+                    break
+
     return search_entities
 
 
 def parse_all_bb_norm_files(dev_files, dev_labels):
-
     all_entities = []
     all_labels = []
 
     for idx, dev_file in enumerate(dev_files):
-        search_entities = parse_bb_norm_file(dev_file)
+        search_entities = parse_bb_a1_file(dev_file)
         search_labels = parse_bb_label_file(dev_labels[idx])
         true_labels = []
 
@@ -54,7 +55,7 @@ def parse_all_bb_norm_files(dev_files, dev_labels):
 
         all_entities.append(search_entities)
         all_labels.append(true_labels)
-    
+
     return all_entities, all_labels
 
 

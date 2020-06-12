@@ -3,20 +3,26 @@ from typing import List
 
 
 class EntityType(Enum):
-    microorganism = "Microorganism"
     phenotype = "Phenotype"
     habitat = "Habitat"
-    paragraph = "Paragraph"
-    title = "Title"
+
+
+class BiotopeContext:
+    def __init__(self, sentence: str, index: int):
+        self.sentence = sentence
+        self.index = index
 
 
 class SearchEntity:
-    def __init__(self, annotation_id: str, type: EntityType, name: str):
+    def __init__(self, annotation_id: str, type: EntityType, name: str, str_begin: int, str_end: int):
         self.id = annotation_id
         self.name = name
+        self.begin = str_begin
+        self.end = str_end
 
         self.name_list = list(filter(lambda x: len(x) > 0, name.split(' ')))
         self.type = type
+
 
 class SearchLabel:
     def __init__(self):
@@ -36,7 +42,6 @@ class Synonym:
         self.type = type
         self.name = name
         self.name_list = list(filter(lambda x: len(x) > 0, name.split(' ')))
-
 
 
 class Biotope:
