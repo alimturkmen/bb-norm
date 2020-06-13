@@ -12,9 +12,10 @@ def run():
     txt_files = sorted(glob(defs.DEV_TXT_FILES))
     dev_a1_files = sorted(glob(defs.DEV_FILES))
 
-    context = context_parser.find_a1_file_context(dev_a1_files[0], txt_files[0])
-
+    biotope_contexts = context_parser.find_all_a1_files_contexts(dev_a1_files, txt_files)
+    contexts = context_parser.find_a1_file_context(dev_a1_files[0], txt_files[0])
     unnecessary = None
+
 
 def run_exact_match():
     biotopes = bb_parser.parse_ontobiotope_file(defs.ONTOBIOTOPE_FILE_PATH)

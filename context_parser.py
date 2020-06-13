@@ -44,6 +44,8 @@ def find_a1_file_context(a1_path: str, txt_path: str) -> Dict[str, List[BiotopeC
             if sentence_pos - len(sentence) > entity.begin or sentence_pos < entity.begin:
                 continue
 
+            # BUG: if name occurs more than once in the sentence, first index will be retrieved. As a solution,
+            # sentence length can be compared to entity.begin
             index = sentence.find(entity.name)
             if index == -1:
                 continue
@@ -56,3 +58,17 @@ def find_a1_file_context(a1_path: str, txt_path: str) -> Dict[str, List[BiotopeC
             break
 
     return entity_dict
+
+
+def find_all_a1_files_contexts(a1_files: List[str], txt_paths: List[str]) -> Dict[str, List[BiotopeContext]]:
+    contexts = {}
+    for i in range(len(a1_files)):
+        biotope_contexts = find_a1_file_context(a1_files[i], txt_paths[i])
+
+        for biotope in biotope_contexts:
+            if biotope in contexts:
+                contexts[biotope] = contexts[biotope] + biotope_contexts[biotope]
+            else:
+                contexts[biotope] = biotope_contexts[biotope]
+
+    return contexts
