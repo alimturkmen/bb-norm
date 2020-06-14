@@ -6,14 +6,24 @@ import bb_parser
 import context_parser
 import defs
 from bb_normalizer import ExactMatch
+from context_embedding import ContextEmbedding
 
 
 def run():
-    txt_files = sorted(glob(defs.DEV_TXT_FILES))
+    dev_txt_files = sorted(glob(defs.DEV_TXT_FILES))
     dev_a1_files = sorted(glob(defs.DEV_FILES))
+    dev_a2_files = sorted(glob(defs.DEV_LABELS))
 
-    biotope_contexts = context_parser.find_all_a1_files_contexts(dev_a1_files, txt_files)
-    contexts = context_parser.find_a1_file_context(dev_a1_files[0], txt_files[0])
+    train_txt_files = sorted(glob(defs.TRAIN_TXT_FILES))
+    train_a1_files = sorted(glob(defs.TRAIN_FILES))
+    train_a2_files = sorted(glob(defs.TRAIN_LABELS))
+
+    contexts = context_parser.find_a1_file_context(dev_a1_files[0], dev_txt_files[0])
+    biotopes = context_parser.find_all_biotope_contexts(train_a1_files, train_a2_files, train_txt_files, defs.ONTOBIOTOPE_FILE_PATH)
+    context_embedder = ContextEmbedding()
+    biotopes = context_embedder.biotope_embed(biotopes)
+    [print(biotopes[i].context_embedding) for i in biotopes.keys()]
+
     unnecessary = None
 
 

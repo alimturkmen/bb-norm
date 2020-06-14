@@ -6,7 +6,7 @@ import entity
 def parse_bb_label_file(file_path):
     search_labels = entity.SearchLabel()
 
-    with open(file_path) as file:
+    with open(file_path, encoding='utf-8') as file:
         lines = re.split("\n", file.read())
 
         for line in lines:
@@ -23,7 +23,7 @@ def parse_bb_label_file(file_path):
 
 def parse_bb_a1_file(file_path):
     search_entities = []
-    with open(file_path) as file:
+    with open(file_path, encoding='utf-8') as file:
         lines = re.split("\n", file.read())
 
         for line in lines:
@@ -62,7 +62,7 @@ def parse_all_bb_norm_files(dev_files, dev_labels):
 def parse_ontobiotope_file(file_path):
     biotopes = {}
 
-    with open(file_path) as file:
+    with open(file_path, encoding='utf-8') as file:
         lines = re.split("\n", file.read())
 
         biotope = None

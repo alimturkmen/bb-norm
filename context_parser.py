@@ -2,8 +2,8 @@ from typing import List, Dict
 
 import nltk
 
-from bb_parser import parse_bb_a1_file
-from entity import BiotopeContext
+from bb_parser import parse_bb_a1_file, parse_bb_label_file, parse_ontobiotope_file
+from entity import BiotopeContext, Biotope, BiotopeFeatures
 
 
 def tag_sentence(sentence: str) -> List[tuple]:
@@ -12,7 +12,7 @@ def tag_sentence(sentence: str) -> List[tuple]:
 
 
 def parse_txt_file(path: str) -> List[str]:
-    with open(path, 'r') as f:
+    with open(path, 'r', encoding='utf-8') as f:
         text = f.read().replace('\n', ' ')
 
         return parse_sentences(text)
@@ -31,7 +31,9 @@ def find_a1_file_context(a1_path: str, txt_path: str) -> Dict[str, List[BiotopeC
 
     for entity in entities:
         # Unnecessary check
+        annotation_id = entity.id
         if len(entity.name_list) == 0:
+            print(entity.id)
             print("name list's size is 0\n")
             break
 
@@ -51,9 +53,9 @@ def find_a1_file_context(a1_path: str, txt_path: str) -> Dict[str, List[BiotopeC
                 continue
 
             if entity.name in entity_dict:
-                entity_dict[entity.name].append(BiotopeContext(sentence, index))
+                entity_dict[entity.name].append(BiotopeContext(annotation_id, sentence, index))
             else:
-                entity_dict[entity.name] = [BiotopeContext(sentence, index)]
+                entity_dict[entity.name] = [BiotopeContext(annotation_id, sentence, index)]
 
             break
 
@@ -72,3 +74,42 @@ def find_all_a1_files_contexts(a1_files: List[str], txt_paths: List[str]) -> Dic
                 contexts[biotope] = biotope_contexts[biotope]
 
     return contexts
+
+
+def find_biotope_context(a1_path: str, a2_path: str, txt_path: str) -> Dict[str, BiotopeFeatures] : 
+
+    contexts = find_a1_file_context(a1_path, txt_path)
+
+    labels = parse_bb_label_file(a2_path).entities
+
+    biotope_contexts = {}
+
+    for surface in contexts:
+        biocont_list = contexts[surface]
+        for biocont in biocont_list:
+            annotation_id = biocont.id
+            biotope_ids = labels[annotation_id]
+            sent = biocont.sentence
+            for biotope_id in biotope_ids:
+                if biotope_id in biotope_contexts:
+                    if surface not in biotope_contexts[biotope_id].surfaces:
+                        biotope_contexts[biotope_id].add_surface(surface)
+                    if sent not in biotope_contexts[biotope_id].sentences:
+                        biotope_contexts[biotope_id].add_sentence(sent)
+                else:
+                    biotope_contexts[biotope_id] = BiotopeFeatures(surface, sent)
+
+    return biotope_contexts
+
+
+def find_all_biotope_contexts(a1_files: List[str], a2_files:  List[str], txt_paths: List[str], ontobio_file: str) -> Dict[str, Biotope]:
+    
+    biotopes = parse_ontobiotope_file(ontobio_file)
+
+    for i in range(len(a1_files)):
+        biotope_context = find_biotope_context(a1_files[i], a2_files[i], txt_paths[i])
+
+        for biocon in biotope_context:
+            biotopes[biocon].add_context(biotope_context[biocon])
+
+    return biotopes

@@ -8,9 +8,26 @@ class EntityType(Enum):
 
 
 class BiotopeContext:
-    def __init__(self, sentence: str, index: int):
+    def __init__(self, annotation_id: str, sentence: str, index: int):
         self.sentence = sentence
         self.index = index
+        self.id = annotation_id
+        self.biotope_ids = []
+
+    def add_biotope_id(self, biotope_id:str):
+        self.biotope_ids.append(biotope_id)
+
+
+class BiotopeFeatures:
+    def __init__(self, surf:str, sent:str):
+        self.surfaces = [surf]
+        self.sentences = [sent]
+
+    def add_surface(self, surf:str):
+        self.surfaces.append(surf)
+
+    def add_sentence(self, sent:str):
+        self.sentences.append(sent)
 
 
 class SearchEntity:
@@ -29,7 +46,10 @@ class SearchLabel:
         self.entities = {}
 
     def add(self, annotation_id: str, term_id: str):
-        self.entities[annotation_id] = term_id
+        if annotation_id in self.entities:
+            self.entities[annotation_id].append(term_id)
+        else:
+            self.entities[annotation_id] = [term_id]
 
 
 class SynonymType(Enum):
@@ -56,3 +76,13 @@ class Biotope:
         self.name_list = []
         self.synonyms = synonyms
         self.is_as = is_as
+        self.sentences = []
+        self.surfaces = []
+        self.context_embedding = None
+        self.surface_embedding = None
+
+    def add_context(self, bio_features:BiotopeFeatures):
+        self.sentences += bio_features.sentences
+        self.surfaces += bio_features.surfaces
+
+    
