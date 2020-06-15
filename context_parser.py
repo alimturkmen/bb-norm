@@ -53,9 +53,9 @@ def find_a1_file_context(a1_path: str, txt_path: str) -> Dict[str, List[BiotopeC
                 continue
 
             if entity.name in entity_dict:
-                entity_dict[entity.name].append(BiotopeContext(annotation_id, sentence, index))
+                entity_dict[entity.name].append(BiotopeContext(annotation_id, sentence, entity.type, index))
             else:
-                entity_dict[entity.name] = [BiotopeContext(annotation_id, sentence, index)]
+                entity_dict[entity.name] = [BiotopeContext(annotation_id, sentence, entity.type, index)]
 
             break
 
@@ -88,6 +88,7 @@ def find_biotope_context(a1_path: str, a2_path: str, txt_path: str) -> Dict[str,
         biocont_list = contexts[surface]
         for biocont in biocont_list:
             annotation_id = biocont.id
+            # BUG dev/BB-norm-10496597.a2 file is empty, causes crashing
             biotope_ids = labels[annotation_id]
             sent = biocont.sentence
             for biotope_id in biotope_ids:

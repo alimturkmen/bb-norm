@@ -5,12 +5,14 @@ from typing import List
 class EntityType(Enum):
     phenotype = "Phenotype"
     habitat = "Habitat"
+    microorganism = "Microorganism"
 
 
 class BiotopeContext:
-    def __init__(self, annotation_id: str, sentence: str, index: int):
+    def __init__(self, annotation_id: str, sentence: str, type: EntityType, index: int):
         self.sentence = sentence
         self.index = index
+        self.type = type
         self.id = annotation_id
         self.biotope_ids = []
 
