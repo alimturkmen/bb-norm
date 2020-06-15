@@ -66,7 +66,7 @@ def parse_ontobiotope_file(file_path):
         lines = re.split("\n", file.read())
 
         biotope = None
-
+        print("Loading OntoBiotope file...")
         for line in lines:
             if line == "[Term]":
                 biotope = entity.Biotope()

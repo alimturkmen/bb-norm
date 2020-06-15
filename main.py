@@ -2,6 +2,7 @@ import math
 import sys
 from glob import glob
 from typing import Dict, List
+from tqdm import tqdm
 
 import tensorflow as tf
 
@@ -42,38 +43,56 @@ def context_match_term(biotope_context: List[BiotopeContext], biotopes: Dict[str
 
 
 def run(save_file_path: str, load_file_path: str):
-    dev_txt_files = sorted(glob(defs.DEV_TXT_FILES))
-    dev_a1_files = sorted(glob(defs.DEV_FILES))
-    dev_a2_files = sorted(glob(defs.DEV_LABELS))
-
+    
+    dev_txt_files = sorted(glob(defs.DEV_TXT_FILES))[0:5]
+    dev_a1_files = sorted(glob(defs.DEV_FILES))[0:5]
+    dev_a2_files = sorted(glob(defs.DEV_LABELS))[0:5]
+    '''
     train_txt_files = sorted(glob(defs.TRAIN_TXT_FILES))
     train_a1_files = sorted(glob(defs.TRAIN_FILES))
     train_a2_files = sorted(glob(defs.TRAIN_LABELS))
+    '''
+    train_txt_files = sorted(glob(defs.TRAIN_TXT_FILES)+glob(defs.DEV_TXT_FILES))
+    train_a1_files = sorted(glob(defs.TRAIN_FILES)+glob(defs.DEV_FILES))
+    train_a2_files = sorted(glob(defs.TRAIN_LABELS)+glob(defs.DEV_LABELS))
 
     test_txt_files = sorted(glob(defs.TEST_TXT_FILES))
     test_a1_files = sorted(glob(defs.TEST_FILES))
 
     context_embedder = ContextEmbedding()
     if load_file_path is not None:
+        print("Loading biotopes dictionary...")
         biotopes = utility.load_pkl(load_file_path)
+        print("Successfully loaded.")
     else:
         biotopes = context_parser.find_all_biotope_contexts(train_a1_files, train_a2_files, train_txt_files,
                                                             defs.ONTOBIOTOPE_FILE_PATH)
+        print("Creating embeddings for biotopes...")
         biotopes = context_embedder.biotope_embed(biotopes)
         if save_file_path is not None:
+            print("Saving biotopes dictionary...")
             utility.save_pkl(biotopes, save_file_path)
+            print("Done.")
 
-    for i in range(len(test_a1_files)):
-        biotope_contexts = context_parser.find_a1_file_context(test_a1_files[i], test_a1_files[i])
-        matched_terms = {}
-        for biotope in biotope_contexts:
-            matched_term = context_match_term(biotope_contexts[biotope], biotopes, context_embedder)
-            matched_terms[biotope] = [
-                {"id": i.id, "ref": matched_term, "type": "N" if i.type == EntityType.microorganism else "O"} for i in
-                biotope_contexts[biotope]]
+    biotopes_with_context = {}
+    for biotope in biotopes:
+        if biotopes[biotope].context_embedding is not None:
+            biotopes_with_context[biotope] = biotopes[biotope]
+
+
+    with tqdm(total=len(dev_a1_files)) as pbar:
+        for i in range(len(dev_a1_files)):
+            biotope_contexts = context_parser.find_a1_file_context(dev_a1_files[i], dev_txt_files[i])
+            matched_terms = {}
+            for biotope in biotope_contexts:
+                matched_term = context_match_term(biotope_contexts[biotope], biotopes_with_context, context_embedder)
+                matched_terms[biotope] = [
+                    {"id": i.id, "ref": matched_term, "type": "N" if i.type == EntityType.microorganism else "O"} for i in
+                    biotope_contexts[biotope]]
+            pbar.update(1)
 
         bb_normalizer.create_eval_file_for_context(matched_terms, dev_a2_files[i])
-
+    
     unnecessary = None
 
 
