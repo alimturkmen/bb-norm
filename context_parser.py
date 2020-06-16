@@ -33,9 +33,8 @@ def find_a1_file_context(a1_path: str, txt_path: str) -> Dict[str, List[BiotopeC
         # Unnecessary check
         annotation_id = entity.id
         if len(entity.name_list) == 0:
-            print(entity.id)
-            print("name list's size is 0\n")
-            break
+            #print("Name list's size is 0\n")
+            continue
 
         sentence_pos = 0
         for sentence in sentences:
@@ -91,6 +90,7 @@ def find_biotope_context(a1_path: str, a2_path: str, txt_path: str) -> Dict[str,
             # BUG dev/BB-norm-10496597.a2 file is empty, causes crashing
             biotope_ids = labels[annotation_id]
             sent = biocont.sentence
+
             for biotope_id in biotope_ids:
                 if biotope_id in biotope_contexts:
                     if surface not in biotope_contexts[biotope_id].surfaces:
@@ -105,12 +105,19 @@ def find_biotope_context(a1_path: str, a2_path: str, txt_path: str) -> Dict[str,
 
 def find_all_biotope_contexts(a1_files: List[str], a2_files:  List[str], txt_paths: List[str], ontobio_file: str) -> Dict[str, Biotope]:
     
+    
     biotopes = parse_ontobiotope_file(ontobio_file)
+    print("Extracting sentences for biotopes...")
 
-    for i in range(len(a1_files)):
-        biotope_context = find_biotope_context(a1_files[i], a2_files[i], txt_paths[i])
-
-        for biocon in biotope_context:
-            biotopes[biocon].add_context(biotope_context[biocon])
+    from tqdm import tqdm
+    with tqdm(total=len(a1_files)) as pbar:
+        for i in range(len(a1_files)):
+            biotope_context = find_biotope_context(a1_files[i], a2_files[i], txt_paths[i])
+            
+            for biocon in biotope_context:
+                if len(biocon) != 6 or biocon[0:2] != '00': continue
+                biotopes[biocon].add_context(biotope_context[biocon])
+            pbar.update(1)
+            
 
     return biotopes
