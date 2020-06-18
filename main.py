@@ -13,7 +13,7 @@ import defs
 import utility
 from bb_normalizer import ExactMatch
 from context_embedding import ContextEmbedding
-from entity import BiotopeContext, Biotope, EntityType
+from entity import BiotopeContext, Biotope, EntityType, SearchEntity
 
 
 def cos_sim(tensor1, tensor2):
@@ -23,22 +23,32 @@ def cos_sim(tensor1, tensor2):
     return float(dot_prod / (len_t1 * len_t2))
 
 
-def context_match_term(biotope_context: List[BiotopeContext], biotopes: Dict[str, Biotope],
+def context_match_term(search_entity: str, biotope_context: BiotopeContext, biotopes: Dict[str, Biotope],
                        context_embedder: ContextEmbedding):
     curr_sim = 0
     matched_term = '000000'
     matched_name = None
-    embed = context_embedder.sentence_embed(list(map(lambda x: x.sentence, biotope_context)))
-    avg_embed = tf.math.reduce_mean(tf.convert_to_tensor(embed), axis=0)
-    for term in biotopes:
 
-        local_sim = cos_sim(avg_embed, biotopes[term].context_embedding)
+    c_embed = tf.convert_to_tensor(context_embedder.sentence_embed([biotope_context.sentence]))
+    s_embed = tf.convert_to_tensor(context_embedder.sentence_embed([search_entity]))
+    
+    for term in biotopes:
+        
+        if biotopes[term].context_embedding is not None :
+            context_sim = cos_sim(c_embed, biotopes[term].context_embedding)
+        else : context_sim = 0.5
+        if biotopes[term].surface_embedding is not None : 
+            surface_sim = cos_sim(s_embed, biotopes[term].surface_embedding)
+        else : surface_sim = 0.5
+        name_sim = cos_sim(s_embed, biotopes[term].name_embedding)
+
+        local_sim = 0.2*context_sim + 0.3*surface_sim + 0.5*name_sim
 
         if local_sim > curr_sim:
             curr_sim = local_sim
             matched_term = term
             matched_name = biotopes[term].name
-
+    
     return matched_term
 
 
@@ -56,8 +66,8 @@ def run(save_file_path: str, load_file_path: str):
     train_a1_files = sorted(glob(defs.TRAIN_FILES)+glob(defs.DEV_FILES))
     train_a2_files = sorted(glob(defs.TRAIN_LABELS)+glob(defs.DEV_LABELS))
 
-    test_txt_files = sorted(glob(defs.TEST_TXT_FILES))
-    test_a1_files = sorted(glob(defs.TEST_FILES))
+    test_txt_files = sorted(glob(defs.TEST_TXT_FILES))[0:10]
+    test_a1_files = sorted(glob(defs.TEST_FILES))[0:10]
 
     context_embedder = ContextEmbedding()
     if load_file_path is not None:
@@ -74,24 +84,20 @@ def run(save_file_path: str, load_file_path: str):
             utility.save_pkl(biotopes, save_file_path)
             print("Done.")
 
-    biotopes_with_context = {}
-    for biotope in biotopes:
-        if biotopes[biotope].context_embedding is not None:
-            biotopes_with_context[biotope] = biotopes[biotope]
 
-
-    with tqdm(total=len(dev_a1_files)) as pbar:
-        for i in range(len(dev_a1_files)):
-            biotope_contexts = context_parser.find_a1_file_context(dev_a1_files[i], dev_txt_files[i])
+    with tqdm(total=len(test_a1_files)) as pbar:
+        for i in range(len(test_a1_files)):
+            biotope_contexts = context_parser.find_a1_file_context(test_a1_files[i], test_txt_files[i])
             matched_terms = {}
             for biotope in biotope_contexts:
-                matched_term = context_match_term(biotope_contexts[biotope], biotopes_with_context, context_embedder)
-                matched_terms[biotope] = [
-                    {"id": i.id, "ref": matched_term, "type": "N" if i.type == EntityType.microorganism else "O"} for i in
-                    biotope_contexts[biotope]]
+                for bio_context in biotope_contexts[biotope]:
+                    matched_term = context_match_term(biotope, bio_context, biotopes, context_embedder)
+                    matched_terms[biotope] = [
+                        {"id": i.id, "ref": matched_term, "type": "N" if i.type == EntityType.microorganism else "O"} for i in
+                        biotope_contexts[biotope]]
             pbar.update(1)
-
-        bb_normalizer.create_eval_file_for_context(matched_terms, dev_a2_files[i])
+            matched_terms = {k: v for k, v in sorted(matched_terms.items(), key=lambda item: int(item[1][0]["id"].replace('T', '')))}
+            bb_normalizer.create_eval_file_for_context(matched_terms, test_a1_files[i])
     
     unnecessary = None
 

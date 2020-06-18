@@ -82,6 +82,7 @@ class Biotope:
         self.surfaces = []
         self.context_embedding = None
         self.surface_embedding = None
+        self.name_embedding = None
 
     def add_context(self, bio_features:BiotopeFeatures):
         self.sentences += bio_features.sentences

@@ -27,12 +27,16 @@ class ContextEmbedding(object):
                 embed_list = self.sentence_embed(sentences)
                 avg_embed = tf.math.reduce_mean(tf.convert_to_tensor(embed_list), axis=0)
                 biotopes[biotope].context_embedding = avg_embed
-                '''
+                
                 surfaces = biotopes[biotope].surfaces
                 surface_embeds = self.sentence_embed(surfaces)
                 avg_surf_embed = tf.math.reduce_mean(tf.convert_to_tensor(surface_embeds), axis=0)
                 biotopes[biotope].surface_embedding = avg_surf_embed
-                '''
+                
+                name = biotopes[biotope].name
+                name_embed = tf.convert_to_tensor(self.sentence_embed([name]))
+                biotopes[biotope].name_embedding = name_embed
+
                 pbar.update(1)
             
             
