@@ -5,26 +5,29 @@ import bb_normalizer
 import bb_parser
 import context_parser
 import defs
+import w2v_parser
 from bb_normalizer import ExactMatch
-from context_embedding import ContextEmbedding
 
 
 def run():
     dev_txt_files = sorted(glob(defs.DEV_TXT_FILES))
     dev_a1_files = sorted(glob(defs.DEV_FILES))
-    dev_a2_files = sorted(glob(defs.DEV_LABELS))
+
+    test_txt_files = sorted(glob(defs.TEST_TXT_FILES))
+    test_a1_files = sorted(glob(defs.TEST_FILES))
 
     train_txt_files = sorted(glob(defs.TRAIN_TXT_FILES))
     train_a1_files = sorted(glob(defs.TRAIN_FILES))
-    train_a2_files = sorted(glob(defs.TRAIN_LABELS))
 
-    contexts = context_parser.find_a1_file_context(dev_a1_files[0], dev_txt_files[0])
-    biotopes = context_parser.find_all_biotope_contexts(train_a1_files, train_a2_files, train_txt_files, defs.ONTOBIOTOPE_FILE_PATH)
-    context_embedder = ContextEmbedding()
-    biotopes = context_embedder.biotope_embed(biotopes)
-    [print(biotopes[i].context_embedding) for i in biotopes.keys()]
+    ontobiotope_terms = bb_parser.parse_ontobiotope_file(defs.ONTOBIOTOPE_FILE_PATH)
+    dev_a1_context = context_parser.find_all_a1_files_contexts(dev_a1_files, dev_txt_files)
+    test_a1_context = context_parser.find_all_a1_files_contexts(test_a1_files, test_txt_files)
+    train_a1_context = context_parser.find_all_a1_files_contexts(train_a1_files, train_txt_files)
 
-    unnecessary = None
+    w2v_parser.parse_and_filter_w2v(
+        w2v_parser.combine_keys(ontobiotope_terms, [dev_a1_context, test_a1_context, train_a1_context]),
+        "/mnt/storage/linux/Downloads/tmp/word-vectors.json",
+        "/mnt/storage/linux/Downloads/tmp/w2v.pkl")
 
 
 def run_exact_match():
