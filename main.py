@@ -96,7 +96,7 @@ def run(save_file_path: str, load_file_path: str):
                         {"id": i.id, "ref": matched_term, "type": "N" if i.type == EntityType.microorganism else "O"} for i in
                         biotope_contexts[biotope]]
             pbar.update(1)
-            matched_terms = {k: v for k, v in sorted(matched_terms.items(), key=lambda item: int(item[1][0]["id"].replace('T', '')))}
+            #matched_terms = {k: v for k, v in sorted(matched_terms.items(), key=lambda item: int(item[1][0]["id"].replace('T', '')))}
             bb_normalizer.create_eval_file_for_context(matched_terms, test_a1_files[i])
     
     unnecessary = None

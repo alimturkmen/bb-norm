@@ -99,10 +99,11 @@ def create_eval_file_for_context(predictions:Dict[str, List[dict]], file_path: s
     file_path = file_path.split('/')[-1][0:-3] + '.a2'
     with open(dir + file_path, 'w') as file:
         i = 1
+        sorted(predictions, key=lambda x: int(x['id'][1:]))
         for biotope in predictions:
             for result in predictions[biotope]:
                 type ='OntoBiotope Annotation:' if result['type'] == 'O' else 'NCBI_Taxonomy Annotation:'
                 line = 'N{}\t{}{} Referent:OBT:{}\n'.format(str(i), type, result['id'], result['ref'])
                 file.write(line)
                 i += 1
-
+            
