@@ -59,13 +59,13 @@ class ExactMatch(object):
 
                     synonym_score = 0
                     for (synonym_type, synonym_name_list) in synonyms:
-                        alpha = 1.0 # if synonym_type == SynonymType.exact else 0.25
+                        alpha = 0.8 # if synonym_type == SynonymType.exact else 0.25
                         if (name in synonym_name_list or name[0].lower()+name[1:] in synonym_name_list or name[0:-1] in synonym_name_list):
                             synonym_score += alpha/(len(synonym_name_list))
                     match_scores[id] += min(synonym_score, 1)
 
                     is_a_score = 0
-                    beta = 1.0
+                    beta = 0.5
                     for is_a in is_as_name_list:
                         if (name in is_a or name[0].lower()+name[1:] in is_a or name[0:-1] in is_a) : is_a_score += beta/len(is_a)
                     match_scores[id] += min(is_a_score, 1)
@@ -77,7 +77,7 @@ class ExactMatch(object):
                 match_id = idx
                 match_score = match_scores[idx]
 
-        return {'type':'O', 'annotation':term.id, 'ref':match_id}
+        return {'type':'O', 'annotation':term.id, 'ref':match_id, 'score':match_score}
 
 
 def create_eval_file(predictions:List[List[dict]], file_names):
@@ -99,11 +99,9 @@ def create_eval_file_for_context(predictions:Dict[str, List[dict]], file_path: s
     file_path = file_path.split('/')[-1][0:-3] + '.a2'
     with open(dir + file_path, 'w') as file:
         i = 1
-        sorted(predictions, key=lambda x: int(x['id'][1:]))
         for biotope in predictions:
             for result in predictions[biotope]:
                 type ='OntoBiotope Annotation:' if result['type'] == 'O' else 'NCBI_Taxonomy Annotation:'
                 line = 'N{}\t{}{} Referent:OBT:{}\n'.format(str(i), type, result['id'], result['ref'])
                 file.write(line)
                 i += 1
-            

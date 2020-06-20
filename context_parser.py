@@ -3,8 +3,9 @@ from typing import List, Dict
 import nltk
 
 from bb_parser import parse_bb_a1_file, parse_bb_label_file, parse_ontobiotope_file
-from entity import BiotopeContext, Biotope, BiotopeFeatures
+from entity import BiotopeContext, Biotope, BiotopeFeatures, EntityType
 
+global biotopes
 
 def tag_sentence(sentence: str) -> List[tuple]:
     tokens = nltk.word_tokenize(sentence)
@@ -50,7 +51,7 @@ def find_a1_file_context(a1_path: str, txt_path: str) -> Dict[str, List[BiotopeC
             index = sentence.find(entity.name)
             if index == -1:
                 continue
-
+            if entity.type == EntityType.microorganism : continue
             if entity.name in entity_dict:
                 entity_dict[entity.name].append(BiotopeContext(annotation_id, sentence, entity.type, index))
             else:
@@ -77,6 +78,8 @@ def find_all_a1_files_contexts(a1_files: List[str], txt_paths: List[str]) -> Dic
 
 def find_biotope_context(a1_path: str, a2_path: str, txt_path: str) -> Dict[str, BiotopeFeatures] : 
 
+    global biotopes
+
     contexts = find_a1_file_context(a1_path, txt_path)
 
     labels = parse_bb_label_file(a2_path).entities
@@ -89,23 +92,34 @@ def find_biotope_context(a1_path: str, a2_path: str, txt_path: str) -> Dict[str,
             annotation_id = biocont.id
             # BUG dev/BB-norm-10496597.a2 file is empty, causes crashing
             biotope_ids = labels[annotation_id]
+            is_a_ids = []
             sent = biocont.sentence
-
+            for idx in biotope_ids:
+                is_a_list = biotopes[idx].is_as 
+                for b in biotopes:
+                    if biotopes[b].name in is_a_list:
+                        is_a_ids.append(biotopes[b].id)
             for biotope_id in biotope_ids:
                 if biotope_id in biotope_contexts:
-                    if surface not in biotope_contexts[biotope_id].surfaces:
-                        biotope_contexts[biotope_id].add_surface(surface)
+                    #if surface not in biotope_contexts[biotope_id].surfaces:
+                    biotope_contexts[biotope_id].add_surface(surface)
+                    #if sent not in biotope_contexts[biotope_id].sentences:
+                    biotope_contexts[biotope_id].add_sentence(sent)
+                else:
+                    biotope_contexts[biotope_id] = BiotopeFeatures(surface, sent)
+            for biotope_id in is_a_ids:
+                if biotope_id in biotope_contexts:
                     if sent not in biotope_contexts[biotope_id].sentences:
                         biotope_contexts[biotope_id].add_sentence(sent)
                 else:
-                    biotope_contexts[biotope_id] = BiotopeFeatures(surface, sent)
+                    biotope_contexts[biotope_id] = BiotopeFeatures(None, sent)
 
     return biotope_contexts
 
 
 def find_all_biotope_contexts(a1_files: List[str], a2_files:  List[str], txt_paths: List[str], ontobio_file: str) -> Dict[str, Biotope]:
     
-    
+    global biotopes
     biotopes = parse_ontobiotope_file(ontobio_file)
     print("Extracting sentences for biotopes...")
 
