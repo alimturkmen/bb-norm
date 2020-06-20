@@ -144,8 +144,8 @@ def run(save_file_path: str, load_file_path: str):
 
 def run_exact_match():
     biotopes = bb_parser.parse_ontobiotope_file(defs.ONTOBIOTOPE_FILE_PATH)
-    dev_files = sorted(glob.glob(defs.DEV_FILES))
-    dev_labels = sorted(glob.glob(defs.DEV_LABELS))
+    dev_files = sorted(glob(defs.DEV_FILES))
+    dev_labels = sorted(glob(defs.DEV_LABELS))
     exact_match = ExactMatch(biotopes)
     all_entities, all_labels = bb_parser.parse_all_bb_norm_files(dev_files, dev_labels)
     preds_w = exact_match.match_all(all_entities, weighted=True)
@@ -184,5 +184,5 @@ if __name__ == "__main__":
             print(f'Unknown option, {sys.argv[_i]}')
             exit(-1)
     # Run the program with given arguments
-    run(_save_file_path, _load_file_path)
-    # run_exact_match()
+    # run(_save_file_path, _load_file_path)
+    run_exact_match()

@@ -7,6 +7,7 @@ from entity import BiotopeContext, Biotope, BiotopeFeatures, EntityType
 
 global biotopes
 
+
 def tag_sentence(sentence: str) -> List[tuple]:
     tokens = nltk.word_tokenize(sentence)
     return nltk.pos_tag(tokens)
@@ -32,12 +33,11 @@ def find_a1_file_context(a1_path: str, txt_path: str) -> Dict[str, List[BiotopeC
 
     for entity in entities:
         # Unnecessary check
-        annotation_id = entity.id
         if len(entity.name_list) == 0:
-            #print("Name list's size is 0\n")
             continue
 
         sentence_pos = 0
+        placed = False
         for sentence in sentences:
             # First check the sentence boundaries. May be the entity occurs multiple time in different sentences.
             # The problem is that, sentence parser omits space at the beginning of the sentence. So some shifts occurs.
@@ -51,13 +51,20 @@ def find_a1_file_context(a1_path: str, txt_path: str) -> Dict[str, List[BiotopeC
             index = sentence.find(entity.name)
             if index == -1:
                 continue
-            if entity.type == EntityType.microorganism : continue
-            if entity.name in entity_dict:
-                entity_dict[entity.name].append(BiotopeContext(annotation_id, sentence, entity.type, index))
-            else:
-                entity_dict[entity.name] = [BiotopeContext(annotation_id, sentence, entity.type, index)]
 
+            if entity.name in entity_dict:
+                entity_dict[entity.name].append(BiotopeContext(entity.id, sentence, entity.type, index))
+            else:
+                entity_dict[entity.name] = [BiotopeContext(entity.id, sentence, entity.type, index)]
+
+            placed = True
             break
+
+        if not placed:
+            if entity.name in entity_dict:
+                entity_dict[entity.name].append(BiotopeContext(entity.id, sentences[-1], entity.type, 0))
+            else:
+                entity_dict[entity.name] = [BiotopeContext(entity.id, sentences[-1], entity.type, 0)]
 
     return entity_dict
 
@@ -65,19 +72,18 @@ def find_a1_file_context(a1_path: str, txt_path: str) -> Dict[str, List[BiotopeC
 def find_all_a1_files_contexts(a1_files: List[str], txt_paths: List[str]) -> Dict[str, List[BiotopeContext]]:
     contexts = {}
     for i in range(len(a1_files)):
-        biotope_contexts = find_a1_file_context(a1_files[i], txt_paths[i])
+        search_entity_context = find_a1_file_context(a1_files[i], txt_paths[i])
 
-        for biotope in biotope_contexts:
-            if biotope in contexts:
-                contexts[biotope] = contexts[biotope] + biotope_contexts[biotope]
+        for search_entity in search_entity_context:
+            if search_entity in contexts:
+                contexts[search_entity] += search_entity_context[search_entity]
             else:
-                contexts[biotope] = biotope_contexts[biotope]
+                contexts[search_entity] = search_entity_context[search_entity]
 
     return contexts
 
 
-def find_biotope_context(a1_path: str, a2_path: str, txt_path: str) -> Dict[str, BiotopeFeatures] : 
-
+def find_biotope_context(a1_path: str, a2_path: str, txt_path: str) -> Dict[str, BiotopeFeatures]:
     global biotopes
 
     contexts = find_a1_file_context(a1_path, txt_path)
@@ -95,15 +101,15 @@ def find_biotope_context(a1_path: str, a2_path: str, txt_path: str) -> Dict[str,
             is_a_ids = []
             sent = biocont.sentence
             for idx in biotope_ids:
-                is_a_list = biotopes[idx].is_as 
+                is_a_list = biotopes[idx].is_as
                 for b in biotopes:
                     if biotopes[b].name in is_a_list:
                         is_a_ids.append(biotopes[b].id)
             for biotope_id in biotope_ids:
                 if biotope_id in biotope_contexts:
-                    #if surface not in biotope_contexts[biotope_id].surfaces:
+                    # if surface not in biotope_contexts[biotope_id].surfaces:
                     biotope_contexts[biotope_id].add_surface(surface)
-                    #if sent not in biotope_contexts[biotope_id].sentences:
+                    # if sent not in biotope_contexts[biotope_id].sentences:
                     biotope_contexts[biotope_id].add_sentence(sent)
                 else:
                     biotope_contexts[biotope_id] = BiotopeFeatures(surface, sent)
@@ -117,21 +123,21 @@ def find_biotope_context(a1_path: str, a2_path: str, txt_path: str) -> Dict[str,
     return biotope_contexts
 
 
-def find_all_biotope_contexts(a1_files: List[str], a2_files:  List[str], txt_paths: List[str], ontobio_file: str) -> Dict[str, Biotope]:
-    
+def find_all_biotope_contexts(a1_files: List[str], a2_files: List[str], txt_paths: List[str], ontobio_file: str) -> \
+        Dict[str, Biotope]:
     global biotopes
     biotopes = parse_ontobiotope_file(ontobio_file)
+
     print("Extracting sentences for biotopes...")
 
     from tqdm import tqdm
     with tqdm(total=len(a1_files)) as pbar:
         for i in range(len(a1_files)):
             biotope_context = find_biotope_context(a1_files[i], a2_files[i], txt_paths[i])
-            
+
             for biocon in biotope_context:
                 if len(biocon) != 6 or biocon[0:2] != '00': continue
                 biotopes[biocon].add_context(biotope_context[biocon])
             pbar.update(1)
-            
 
     return biotopes

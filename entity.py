@@ -1,11 +1,20 @@
+import math
 from enum import Enum
+from glob import glob
 from typing import List
+
+import tensorflow as tf
 
 
 class EntityType(Enum):
     phenotype = "Phenotype"
     habitat = "Habitat"
     microorganism = "Microorganism"
+
+
+class SynonymType(Enum):
+    exact = "EXACT"
+    related = "RELATED"
 
 
 class BiotopeContext:
@@ -16,19 +25,19 @@ class BiotopeContext:
         self.id = annotation_id
         self.biotope_ids = []
 
-    def add_biotope_id(self, biotope_id:str):
+    def add_biotope_id(self, biotope_id: str):
         self.biotope_ids.append(biotope_id)
 
 
 class BiotopeFeatures:
-    def __init__(self, surf:str, sent:str):
+    def __init__(self, surf: str, sent: str):
         self.surfaces = [surf]
         self.sentences = [sent]
 
-    def add_surface(self, surf:str):
+    def add_surface(self, surf: str):
         self.surfaces.append(surf)
 
-    def add_sentence(self, sent:str):
+    def add_sentence(self, sent: str):
         self.sentences.append(sent)
 
 
@@ -52,11 +61,6 @@ class SearchLabel:
             self.entities[annotation_id].append(term_id)
         else:
             self.entities[annotation_id] = [term_id]
-
-
-class SynonymType(Enum):
-    exact = "EXACT"
-    related = "RELATED"
 
 
 class Synonym:
@@ -84,8 +88,41 @@ class Biotope:
         self.surface_embedding = None
         self.name_embedding = None
 
-    def add_context(self, bio_features:BiotopeFeatures):
+    def add_context(self, bio_features: BiotopeFeatures):
         self.sentences += bio_features.sentences
         self.surfaces += bio_features.surfaces
 
-    
+
+class Prediction:
+    def __init__(self, annotation_id: str, predicted_term_id: str, term_type: EntityType, confidence: float):
+        self.annotation_id = annotation_id
+        self.predicted_term_id = predicted_term_id
+        self.term_type = term_type
+        self.confidence = confidence
+
+    def print(self):
+        term_type = "NCBI_Taxonomy Annotation:" if self.term_type == EntityType.microorganism else "OntoBiotope Annotation:"
+        referent = "Referent:" if self.term_type == EntityType.microorganism else "Referent:OBT:"
+        return "{}{} {}{}".format(term_type, self.annotation_id, referent, self.predicted_term_id)
+
+
+class DataSet:
+    def __init__(self, train_set_dir: str):
+        self.txt_files = sorted(glob(train_set_dir + "*.txt"))
+        self.a1_files = sorted(glob(train_set_dir + "*.a1"))
+        self.a2_files = sorted(glob(train_set_dir + "*.a2"))
+
+
+class EmbedCache:
+    def __init__(self, tensor: tf.Tensor):
+        self.tensor = tensor
+        self.length = math.sqrt(tf.reduce_sum(tensor * tensor))
+
+
+class BiotopeCache:
+    def __init__(self, name: str, context_embedding: EmbedCache, surface_embedding: EmbedCache,
+                 name_embedding: EmbedCache):
+        self.name = name
+        self.context_embedding = context_embedding
+        self.surface_embedding = surface_embedding
+        self.name_embedding = name_embedding

@@ -16,3 +16,5 @@ TEST_TXT_FILES = TEST_PATH + "*.txt"
 TEST_FILES = TEST_PATH + "*.a1"
 
 OUTPUT_PATH = "../predictions/"
+
+

@@ -28,7 +28,7 @@ def parse_bb_a1_file(file_path):
 
         for line in lines:
             for type in entity.EntityType:
-                search_str = "(T[0-9]*)\t{} ([0-9]*) ([0-9]*)\t([A-Za-z0-9-_ \.]*)".format(type.value)
+                search_str = "(T[0-9]*)\t{} ([0-9]*) ([0-9]*)\t([A-Za-z0-9-_ \.β\/]*)".format(type.value)
                 result = re.search(search_str, line)
 
                 if result is not None:
