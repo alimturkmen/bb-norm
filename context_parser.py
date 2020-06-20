@@ -95,6 +95,8 @@ def find_biotope_context(a1_path: str, a2_path: str, txt_path: str) -> Dict[str,
     for surface in contexts:
         biocont_list = contexts[surface]
         for biocont in biocont_list:
+            if biocont.type == EntityType.microorganism:
+                continue
             annotation_id = biocont.id
             # BUG dev/BB-norm-10496597.a2 file is empty, causes crashing
             biotope_ids = labels[annotation_id]

@@ -87,6 +87,8 @@ class Biotope:
         self.context_embedding = None
         self.surface_embedding = None
         self.name_embedding = None
+        self.is_a_embedding = None
+        self.synonym_embedding = None
 
     def add_context(self, bio_features: BiotopeFeatures):
         self.sentences += bio_features.sentences
@@ -121,8 +123,10 @@ class EmbedCache:
 
 class BiotopeCache:
     def __init__(self, name: str, context_embedding: EmbedCache, surface_embedding: EmbedCache,
-                 name_embedding: EmbedCache):
+                 name_embedding: EmbedCache, is_a_embedding: EmbedCache, synonym_embedding: EmbedCache):
         self.name = name
         self.context_embedding = context_embedding
         self.surface_embedding = surface_embedding
         self.name_embedding = name_embedding
+        self.is_a_embedding = is_a_embedding
+        self.synonym_embedding = synonym_embedding

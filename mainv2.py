@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 import sys
 
 from tqdm import tqdm
@@ -5,7 +6,7 @@ from tqdm import tqdm
 import defs
 from bb_normalizer import ExactMatch
 from bb_parser import parse_bb_a1_file
-from entity import DataSet, Prediction
+from entity import DataSet, Prediction, EntityType
 from evaluators import create_predictions_evaluate_file
 from predictors import context_predictor
 from utility import load_pkl
@@ -20,12 +21,16 @@ def load_cache(load_dir):
 def run(load_dir):
     test_set = DataSet(defs.TEST_PATH)
 
-    (se_sentences_embeds, se_name_embed, biotope_terms, biotopes) = load_cache(load_dir)
+    (se_sentences_embeds, se_name_embed, biotope_embeds, biotopes) = load_cache(load_dir)
 
     exact_match_predictor = ExactMatch(biotopes)
 
-    with tqdm(total=len(test_set.a1_files[90:])) as pbar:
-        for path in test_set.a1_files[90:]:
+    total_search_entity = 0
+    context_predicted_entity = 0
+    exact_predicted_entity = 0
+    interval = "1"
+    with tqdm(total=len(test_set.a1_files)) as pbar:
+        for path in test_set.a1_files:
             file_name = path.split('/')[-1][0:-3]
 
             search_entities = parse_bb_a1_file(path)
@@ -35,24 +40,33 @@ def run(load_dir):
             print("Current File {}".format(file_name))
 
             for search_entity in search_entities:
-
+                total_search_entity += 1
                 # if not in the dict, it must have some invalid character
-                if search_entity.id not in se_sentences_embeds[file_name]:
+                if search_entity.id not in se_sentences_embeds[
+                    file_name] or search_entity.type == EntityType.microorganism:
                     predictions.append(Prediction(search_entity.id, "000000", search_entity.type, 0))
                     continue
 
                 predicted_term = context_predictor(search_entity, se_sentences_embeds[file_name][search_entity.id],
-                                                   se_name_embed[file_name][search_entity.id], biotope_terms)
+                                                   se_name_embed[file_name][search_entity.id], biotope_embeds)
 
                 if predicted_term.confidence < 0.1:
                     exact_match = exact_match_predictor.weighted_match_term(search_entity)
                     predicted_term = Prediction(search_entity.id, exact_match["ref"], search_entity.type,
                                                 exact_match["score"])
+                    exact_predicted_entity += 1
+                else:
+                    context_predicted_entity += 1
 
                 predictions.append(predicted_term)
 
             create_predictions_evaluate_file(predictions, path)
             pbar.update(1)
+
+    with open("../outputs/statistics/run-" + interval, "w") as file:
+        file.write("total predicted: {}, exact_predicted: {}, context_predictd: {}"
+                   .format(str(total_search_entity), str(exact_predicted_entity), str(context_predicted_entity))
+                   )
 
 
 if __name__ == "__main__":

@@ -1,9 +1,13 @@
+import sys
 from typing import Dict, Any, List
 
 import ijson
 
+import defs
 import utility
-from entity import Biotope
+from bb_parser import parse_ontobiotope_file
+from context_parser import find_all_a1_files_contexts
+from entity import Biotope, DataSet
 
 
 def combine_keys(ontobiotope_terms: Dict[str, Biotope], other_keys: List[Dict[str, Any]]) -> Dict[str, bool]:
@@ -58,3 +62,33 @@ def parse_and_filter_w2v(search_keys: Dict[str, Any], w2v_path: str,
 
     if save_path is not None:
         utility.save_pkl(word_embeddings, save_path)
+
+
+def run(save_path: str, w2v_path: str):
+    ontobiotope_terms = parse_ontobiotope_file(defs.ONTOBIOTOPE_FILE_PATH)
+    dev_set = DataSet(defs.DEV_PATH)
+    test_set = DataSet(defs.TEST_PATH)
+    train_set = DataSet(defs.TRAIN_PATH)
+
+    dev_a1_context = find_all_a1_files_contexts(dev_set.a1_files, dev_set.txt_files)
+    test_a1_context = find_all_a1_files_contexts(test_set.a1_files, test_set.txt_files)
+    train_a1_context = find_all_a1_files_contexts(train_set.a1_files, train_set.txt_files)
+
+    parse_and_filter_w2v(
+        combine_keys(ontobiotope_terms, [dev_a1_context, test_a1_context, train_a1_context]),
+        w2v_path,
+        save_path)
+
+
+if __name__ == "__main__":
+    _argv_len = len(sys.argv)
+
+    if _argv_len < 3:
+        print(f'Incorrect number of arguments supplied, please check README.md')
+        exit(-1)
+
+    _w2v_path = sys.argv[1]
+    _save_file_path = sys.argv[2]
+
+    # Run the program with given arguments
+    run(_save_file_path, _w2v_path)

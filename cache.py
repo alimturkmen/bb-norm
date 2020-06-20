@@ -1,13 +1,10 @@
 import sys
 
-from tqdm import tqdm
-
 import defs
 from context_embedding import ContextEmbedding
-from context_parser import find_all_biotope_contexts, find_a1_file_context
+from context_parser import find_all_biotope_contexts
 from entity import DataSet, EmbedCache, BiotopeCache
 from utility import save_pkl
-import tensorflow as tf
 
 
 def run(save_dir):
@@ -23,61 +20,71 @@ def run(save_dir):
     # Structures as follows Dict[term_id, BiotopeCache]
     biotope_embeds = {}
 
-    # data_set_txt = train_set.txt_files + dev_set.txt_files
-    # data_set_a1 = train_set.a1_files + dev_set.a1_files
-    # data_set_a2 = train_set.a2_files + dev_set.a2_files
+    data_set_txt = train_set.txt_files + dev_set.txt_files
+    data_set_a1 = train_set.a1_files + dev_set.a1_files
+    data_set_a2 = train_set.a2_files + dev_set.a2_files
 
-    with tqdm(total=len(test_set.a1_files)) as pbar:
-        for i in range(len(test_set.a1_files)):
-            file_name = test_set.a1_files[i].split('/')[-1][0:-3]
-
-            sentence_embeds[file_name] = {}
-            name_embeds[file_name] = {}
-
-            search_entities_context = find_a1_file_context(test_set.a1_files[i], test_set.txt_files[i])
-
-            for search_entity_context_key in search_entities_context:
-                name_embed_cache = EmbedCache(context_embedding.name_embed(search_entity_context_key))
-
-                for search_entity in search_entities_context[search_entity_context_key]:
-                    sentence_embed_cache = EmbedCache(
-                        tf.convert_to_tensor(context_embedding.sentence_embed([search_entity.sentence]))
-                    )
-
-                    name_embeds[file_name][search_entity.id] = name_embed_cache
-                    sentence_embeds[file_name][search_entity.id] = sentence_embed_cache
-
-            pbar.update(1)
-
-    # biotopes_contexts = find_all_biotope_contexts(data_set_a1, data_set_a2, data_set_txt,
-    #                                               defs.ONTOBIOTOPE_FILE_PATH)
-    # biotopes_contexts = context_embedding.biotope_embed(biotopes_contexts)
+    # with tqdm(total=len(test_set.a1_files)) as pbar:
+    #     for i in range(len(test_set.a1_files)):
+    #         file_name = test_set.a1_files[i].split('/')[-1][0:-3]
     #
-    # save_pkl(biotopes_contexts, save_dir + "biotope_contexts.pkl")
+    #         sentence_embeds[file_name] = {}
+    #         name_embeds[file_name] = {}
     #
-    # for key in biotopes_contexts:
-    #     if biotopes_contexts[key].context_embedding is not None:
-    #         context_embed_cache = EmbedCache(biotopes_contexts[key].context_embedding)
-    #     else:
-    #         context_embed_cache = None
+    #         search_entities_context = find_a1_file_context(test_set.a1_files[i], test_set.txt_files[i])
     #
-    #     if biotopes_contexts[key].surface_embedding is not None:
-    #         surface_embed_cache = EmbedCache(biotopes_contexts[key].surface_embedding)
-    #     else:
-    #         surface_embed_cache = None
+    #         for search_entity_context_key in search_entities_context:
+    #             name_embed_cache = EmbedCache(context_embedding.name_embed(search_entity_context_key))
     #
-    #     if biotopes_contexts[key].name_embedding is not None:
-    #         name_embed_cache = EmbedCache(biotopes_contexts[key].name_embedding)
-    #     else:
-    #         name_embed_cache = None
+    #             for search_entity in search_entities_context[search_entity_context_key]:
+    #                 sentence_embed_cache = EmbedCache(
+    #                     tf.convert_to_tensor(context_embedding.sentence_embed([search_entity.sentence]))
+    #                 )
     #
-    #     biotope_embeds[key] = BiotopeCache(biotopes_contexts[key].name, context_embed_cache,
-    #                                        surface_embed_cache,
-    #                                        name_embed_cache)
+    #                 name_embeds[file_name][search_entity.id] = name_embed_cache
+    #                 sentence_embeds[file_name][search_entity.id] = sentence_embed_cache
+    #
+    #         pbar.update(1)
 
-    save_pkl(sentence_embeds, save_dir + "test_sentence_embeds.pkl")
-    save_pkl(name_embeds, save_dir + "test_name_embeds.pkl")
-    # save_pkl(biotope_embeds, save_dir + "biotope_embeds.pkl")
+    biotopes_contexts = find_all_biotope_contexts(data_set_a1, data_set_a2, data_set_txt,
+                                                  defs.ONTOBIOTOPE_FILE_PATH)
+    biotopes_contexts = context_embedding.biotope_embed(biotopes_contexts)
+
+    save_pkl(biotopes_contexts, save_dir + "biotope_contexts.pkl")
+
+    for key in biotopes_contexts:
+        if biotopes_contexts[key].context_embedding is not None:
+            context_embed_cache = EmbedCache(biotopes_contexts[key].context_embedding)
+        else:
+            context_embed_cache = None
+
+        if biotopes_contexts[key].surface_embedding is not None:
+            surface_embed_cache = EmbedCache(biotopes_contexts[key].surface_embedding)
+        else:
+            surface_embed_cache = None
+
+        if biotopes_contexts[key].name_embedding is not None:
+            name_embed_cache = EmbedCache(biotopes_contexts[key].name_embedding)
+        else:
+            name_embed_cache = None
+
+        if biotopes_contexts[key].synonym_embedding is not None:
+            synonym_embed_cache = EmbedCache(biotopes_contexts[key].synonym_embedding)
+        else:
+            synonym_embed_cache = None
+
+        if biotopes_contexts[key].is_a_embedding is not None:
+            is_a_embed_cache = EmbedCache(biotopes_contexts[key].is_a_embedding)
+        else:
+            is_a_embed_cache = None
+
+        biotope_embeds[key] = BiotopeCache(biotopes_contexts[key].name, context_embed_cache,
+                                           surface_embed_cache,
+                                           name_embed_cache, synonym_embed_cache, is_a_embed_cache)
+
+    # save_pkl(sentence_embeds, save_dir + "test_sentence_embeds.pkl")
+    # save_pkl(name_embeds, save_dir + "test_name_embeds.pkl")
+    save_pkl(biotope_embeds, save_dir + "biotope_embeds.pkl")
 
 
 if __name__ == "__main__":

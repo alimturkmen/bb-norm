@@ -131,15 +131,7 @@ def run(save_file_path: str, load_file_path: str):
         print("Saving biotopes dictionary...")
         utility.save_pkl(biotopes, save_file_path)
         print("Done.")
-    ontobiotope_terms = bb_parser.parse_ontobiotope_file(defs.ONTOBIOTOPE_FILE_PATH)
-    dev_a1_context = context_parser.find_all_a1_files_contexts(dev_a1_files, dev_txt_files)
-    test_a1_context = context_parser.find_all_a1_files_contexts(test_a1_files, test_txt_files)
-    train_a1_context = context_parser.find_all_a1_files_contexts(train_a1_files, train_txt_files)
 
-    w2v_parser.parse_and_filter_w2v(
-        w2v_parser.combine_keys(ontobiotope_terms, [dev_a1_context, test_a1_context, train_a1_context]),
-        "/mnt/storage/linux/Downloads/tmp/word-vectors.json",
-        "/mnt/storage/linux/Downloads/tmp/w2v.pkl")
 
 
 def run_exact_match():
