@@ -1,6 +1,6 @@
 TOTAL_FILE=97
 NUMBER_OF_PROCESS=10
-for process in $(seq 1 $((NUMBER_OF_PROCESS + 1))); do
+for process in $(seq 0 $((NUMBER_OF_PROCESS))); do
     LENGTH=$((TOTAL_FILE / NUMBER_OF_PROCESS))
     START_INDEX=$((LENGTH * process))
 
