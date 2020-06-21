@@ -39,7 +39,7 @@ def context_predictor(search_entity: SearchEntity, se_sentence_embed: EmbedCache
         if surface_sim < 0.1:
             name_surface_avg = name_sim
         else:
-            name_surface_avg = 0.4 * surface_sim + 0.6 * name_sim
+            name_surface_avg = 0.6 * surface_sim + 0.4 * name_sim
 
         if context_sim == 0:
             local_sim = 0.15 + .75 * name_surface_avg
