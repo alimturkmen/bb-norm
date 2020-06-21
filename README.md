@@ -46,7 +46,7 @@ The file placement should be like, and the scripts should called inside the *src
     predictions/
     
 ## Execution
-####1. w2v_parser.py
+#### 1. w2v_parser.py
 If you do not have a pre-cached *w2v* data. You should create it by yourself.
  - Obtain *word-vectors.json* file from the organizers. We have used 
  vectors of 100 dimension.
@@ -56,7 +56,7 @@ If you do not have a pre-cached *w2v* data. You should create it by yourself.
 Parsing can take long time. Let it continue running unless it crashed.
  
  
-####2. cache.py
+#### 2. cache.py
 This caching is prepared for *test* data set. If you want to also create caches for *dev* and *traing*,
 you should specify them at the *cache.py* file. 
  - Execute the command ```./cache.py <cache-directory>```, where the 
@@ -64,7 +64,7 @@ you should specify them at the *cache.py* file.
  
  Caching can take long time. Let it continue running unless it crashed.
 
-####3. main.py
+#### 3. main.py
 This is where our model runs. If you have successfully completed the previous steps, *w2v2_parser* and *cache*, this script should
 run quickly. You can try different models and see their results in a very short time thanks to caching.
 We have provided a bash script called ```run.sh``` which lets you run multiple processes for speeding up.
