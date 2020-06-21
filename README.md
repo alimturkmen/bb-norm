@@ -30,7 +30,7 @@ directory.
  - Create a directory called ```predictions``` at location ```../```, which can 
  be accessed like ```../predictions``` 
 
-The file placement should be like, and the scripts should called inside the *src* directory.
+The file placement should be like this: 
     
     data/
         BioNLP-OST-2019_BB-norm_dev/
@@ -45,6 +45,8 @@ The file placement should be like, and the scripts should called inside the *src
         w2v.pkl
     predictions/
     
+Scripts should be called inside the *src* directory.
+
 ## Execution
 #### 1. w2v_parser.py
 If you do not have a pre-cached *w2v* data. You should create it by yourself.
