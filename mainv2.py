@@ -37,8 +37,8 @@ def run(load_dir: str, start_index: int, length: int):
 
             for search_entity in search_entities:
                 # if not in the dict, it must have some invalid character
-                if search_entity.id not in se_sentences_embeds[
-                    file_name] or search_entity.type == EntityType.microorganism:
+                if search_entity.id not in se_sentences_embeds[file_name] or \
+                        search_entity.type == EntityType.microorganism:
                     predictions.append(Prediction(search_entity.id, "000000", search_entity.type, 0))
                     continue
 

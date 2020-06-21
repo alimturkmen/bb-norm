@@ -1,10 +1,13 @@
 import sys
 
+from tqdm import tqdm
+
 import defs
 from context_embedding import ContextEmbedding
-from context_parser import find_all_biotope_contexts
+from context_parser import find_all_biotope_contexts, find_a1_file_context, find_all_biotope_contexts_v2
 from entity import DataSet, EmbedCache, BiotopeCache
 from utility import save_pkl
+import tensorflow as tf
 
 
 def run(save_dir):
@@ -20,9 +23,10 @@ def run(save_dir):
     # Structures as follows Dict[term_id, BiotopeCache]
     biotope_embeds = {}
 
-    data_set_txt = train_set.txt_files + dev_set.txt_files
-    data_set_a1 = train_set.a1_files + dev_set.a1_files
-    data_set_a2 = train_set.a2_files + dev_set.a2_files
+    data_set = DataSet(defs.DEV_PATH)
+    data_set.a1_files += train_set.a1_files
+    data_set.a2_files += train_set.a2_files
+    data_set.txt_files += train_set.txt_files
 
     # with tqdm(total=len(test_set.a1_files)) as pbar:
     #     for i in range(len(test_set.a1_files)):
@@ -46,8 +50,7 @@ def run(save_dir):
     #
     #         pbar.update(1)
 
-    biotopes_contexts = find_all_biotope_contexts(data_set_a1, data_set_a2, data_set_txt,
-                                                  defs.ONTOBIOTOPE_FILE_PATH)
+    biotopes_contexts = find_all_biotope_contexts_v2(data_set, defs.ONTOBIOTOPE_FILE_PATH)
     biotopes_contexts = context_embedding.biotope_embed(biotopes_contexts)
 
     save_pkl(biotopes_contexts, save_dir + "biotope_contexts.pkl")
