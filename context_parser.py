@@ -105,8 +105,8 @@ def find_biotope_context(a1_path: str, a2_path: str, txt_path: str) -> Dict[str,
             for idx in biotope_ids:
                 is_a_list = biotopes[idx].is_as
                 for b in biotopes:
-                    if biotopes[b].name in is_a_list:
-                        is_a_ids.append(biotopes[b].id)
+                    if b in is_a_list:
+                        is_a_ids.append(b)
             for biotope_id in biotope_ids:
                 if biotope_id in biotope_contexts:
                     # if surface not in biotope_contexts[biotope_id].surfaces:

@@ -31,7 +31,7 @@ def run(load_dir):
     interval = "1"
     with tqdm(total=len(test_set.a1_files)) as pbar:
         for path in test_set.a1_files:
-            file_name = path.split('/')[-1][0:-3]
+            file_name = path.split('\\')[-1][0:-3] #BUG
 
             search_entities = parse_bb_a1_file(path)
 
@@ -40,7 +40,7 @@ def run(load_dir):
             print("Current File {}".format(file_name))
 
             for search_entity in search_entities:
-                total_search_entity += 1
+                
                 # if not in the dict, it must have some invalid character
                 if search_entity.id not in se_sentences_embeds[
                     file_name] or search_entity.type == EntityType.microorganism:
@@ -50,8 +50,11 @@ def run(load_dir):
                 predicted_term = context_predictor(search_entity, se_sentences_embeds[file_name][search_entity.id],
                                                    se_name_embed[file_name][search_entity.id], biotope_embeds)
 
-                if predicted_term.confidence < 0.1:
+                if predicted_term.confidence < 0.60:
                     exact_match = exact_match_predictor.weighted_match_term(search_entity)
+                    if exact_match['score'] < 1.0: 
+                        total_search_entity += 1
+                        continue
                     predicted_term = Prediction(search_entity.id, exact_match["ref"], search_entity.type,
                                                 exact_match["score"])
                     exact_predicted_entity += 1
@@ -59,6 +62,8 @@ def run(load_dir):
                     context_predicted_entity += 1
 
                 predictions.append(predicted_term)
+
+                total_search_entity += 1
 
             create_predictions_evaluate_file(predictions, path)
             pbar.update(1)

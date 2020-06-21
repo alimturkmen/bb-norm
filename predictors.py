@@ -1,6 +1,8 @@
 from typing import List
 
 import tensorflow as tf
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 from entity import Prediction, SearchEntity, EmbedCache, BiotopeCache
 
@@ -25,31 +27,31 @@ def context_predictor(search_entity: SearchEntity, se_sentence_embed: EmbedCache
     best_sim = 0
     for term_key in biotope_terms:
         term = biotope_terms[term_key]
-        context_sim, surface_sim, name_sim = 0, 0, 0
+        context_sim, surface_sim, _name_sim, syn_sim, is_a_sim = 0.65, 0, 0, 0, 0.65
 
-        # if term.context_embedding is not None:
-        #     context_sim = cos_sim(se_sentence_embed, term.context_embedding)
-        #
-        # if term.surface_embedding is not None:
-        #     surface_sim = cos_sim(se_name_embed, term.surface_embedding)
+        if len(term.context_embedding.tensor.shape) != 0:
+            context_sim = max(cos_sim(se_sentence_embed, term.context_embedding), context_sim)
+        
+        if len(term.surface_embedding.tensor.shape) != 0:
+            surface_sim = cos_sim(se_name_embed, term.surface_embedding)
 
-        if term.name_embedding is not None:
-            name_sim = cos_sim(se_name_embed, term.name_embedding)
+        if len(term.name_embedding.tensor.shape) != 0:
+            _name_sim = cos_sim(se_name_embed, term.name_embedding)
 
-        if surface_sim == 0:
-            name_surface_avg = name_sim
-        else:
-            name_surface_avg = 0.6 * surface_sim + 0.4 * name_sim
-        #
-        # if context_sim == 0:
-        #     local_sim = 0.15 + .75 * name_surface_avg
-        # else:
-        #     local_sim = 0.25 * context_sim + 0.75 * name_surface_avg
+        if len(term.synonym_embedding.tensor.shape) != 0:
+            syn_sim = cos_sim(se_name_embed, term.synonym_embedding)
 
-        local_sim = name_sim
+        # if len(term.is_a_embedding.tensor.shape) != 0:
+        #     is_a_sim = max(cos_sim(se_name_embed, term.is_a_embedding), is_a_sim)
+
+        name_sim  = max(_name_sim, syn_sim)
+        name_surface_avg  = max(name_sim, surface_sim)
+
+        local_sim = 0.25*context_sim + 0.75*name_surface_avg #+ 0.1*is_a_sim 
+
 
         if local_sim > best_sim:
-            best_cos_sims = [context_sim, surface_sim, name_sim]
+            best_cos_sims = [context_sim, is_a_sim, name_surface_avg]
             best_sim = local_sim
             predicted_term = term_key
 
