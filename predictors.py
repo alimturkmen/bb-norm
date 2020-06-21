@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict
 
 import tensorflow as tf
 import os
@@ -18,7 +18,7 @@ def cos_sim(embed1: EmbedCache, embed2: EmbedCache):
 
 
 def context_predictor(search_entity: SearchEntity, se_sentence_embed: EmbedCache, se_name_embed: EmbedCache,
-                      biotope_terms: List[BiotopeCache]) -> Prediction:
+                      biotope_terms: Dict[str, BiotopeCache]) -> Prediction:
     # Set to root term as default
     predicted_term = '000000'
 
@@ -55,6 +55,6 @@ def context_predictor(search_entity: SearchEntity, se_sentence_embed: EmbedCache
             best_sim = local_sim
             predicted_term = term_key
 
-    print(f"{search_entity}\tscore:{best_cos_sims}\tprediction:{predicted_term}")
+    print(f"{search_entity.name}\tscore:{best_cos_sims}\tprediction:{predicted_term}")
 
     return Prediction(search_entity.id, predicted_term, search_entity.type, best_sim)
