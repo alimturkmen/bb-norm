@@ -45,10 +45,12 @@ def run(load_dir: str, start_index: int, length: int):
                 predicted_term = context_predictor(search_entity, se_sentences_embeds[file_name][search_entity.id],
                                                    se_name_embed[file_name][search_entity.id], biotope_embeds)
 
-                if predicted_term.confidence < 0.1:
+                if predicted_term.confidence < 0.55:
                     exact_match = exact_match_predictor.weighted_match_term(search_entity)
                     predicted_term = Prediction(search_entity.id, exact_match["ref"], search_entity.type,
                                                 exact_match["score"])
+                    if predicted_term.confidence == 0:
+                        continue
 
                 predictions.append(predicted_term)
 

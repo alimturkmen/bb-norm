@@ -56,10 +56,10 @@ class ContextEmbedding(object):
                 # surface_embeds = self.sentence_embed(surfaces)
                 surface_embeds = []
                 for s in surfaces:
-                    embed = self.name_embed(s.lower())
-                    if len(embed.shape) == 0:
-                        continue
-                    surface_embeds.append(embed)
+                        embed = self.name_embed(s.lower())
+                        if len(embed.shape) == 0:
+                            continue
+                        surface_embeds.append(embed)
                 avg_surf_embed = tf.math.reduce_mean(tf.convert_to_tensor(surface_embeds), axis=0)
                 biotopes[biotope].surface_embedding = avg_surf_embed
 
