@@ -110,8 +110,19 @@ def find_all_biotope_contexts(data_set: DataSet, ontobiotope_file: str) -> \
                         biotope_contexts[term_id].add_surface(word)
 
                         for token in word.split("-"):
-
                             biotope_contexts[term_id].add_surface(token)
+
+                    # For is as
+                    if term_id in biotopes:
+                        term = biotopes[term_id]
+                        for is_a in term.is_as:
+                            # Check if is_a is already created
+                            if is_a in biotope_contexts:
+                                biotope_contexts[is_a].add_sentence(context.sentence)
+                            else:
+                                biotope_contexts[is_a] = BiotopeFeatures("", context.sentence)
+                                # Clear surfaces
+                                biotope_contexts[is_a].surfaces = []
             pbar.update(1)
 
     for biotope_key in biotope_contexts:
