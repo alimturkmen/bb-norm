@@ -41,17 +41,17 @@ def context_predictor(search_entity: SearchEntity, se_sentence_embed: EmbedCache
         if len(term.synonym_embedding.tensor.shape) != 0:
             syn_sim = cos_sim(se_name_embed, term.synonym_embedding)
 
-        if len(term.is_a_embedding.tensor.shape) != 0:
-            is_a_sim = max(cos_sim(se_name_embed, term.is_a_embedding), is_a_sim)
+        # if len(term.is_a_embedding.tensor.shape) != 0:
+        #     is_a_sim = max(cos_sim(se_name_embed, term.is_a_embedding), is_a_sim)
 
         name_sim  = max(_name_sim, syn_sim)
         name_surface_avg  = max(name_sim, surface_sim)
 
-        local_sim = 0.25*context_sim + 0.75*name_surface_avg #+ 0.1*is_a_sim 
+        local_sim = 0.25*context_sim + 0.75*name_surface_avg #+ 0.05 *is_a_sim 
 
 
         if local_sim > best_sim:
-            best_cos_sims = [context_sim, is_a_sim, name_surface_avg]
+            best_cos_sims = [context_sim, name_surface_avg]
             best_sim = local_sim
             predicted_term = term_key
 
