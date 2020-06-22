@@ -71,7 +71,8 @@ This is where our model runs. If you have successfully completed the previous st
 run quickly. You can try different models and see their results in a very short time thanks to caching.
 We have provided a bash script called ```run.sh``` which lets you run multiple processes for speeding up.
 Expect a 4GB increase in memory usage. You should define number of processes in the ```run.sh``` script 
-according to your machine's physical and logical cores. We are not recommend using GPU for tensorflow, because
+according to your machine's physical and logical cores, besides you should specify the cache location. 
+We do not recommend using GPU for tensorflow, because
 we have observed that it slow downs the execution. This is due to lots of short calculations and
 as a result, communication overhead.
 

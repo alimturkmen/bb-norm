@@ -62,8 +62,7 @@ if __name__ == "__main__":
     _argv_len = len(sys.argv)
 
     if _argv_len < 3:
-        print(
-            f'Incorrect number of arguments supplied, the -l flag is removed, ./mainv2.py <cache-path> <start-index> <length>')
+        print(f'Incorrect number of arguments supplied, please check README.md')
         exit(-1)
 
     _load_dir = sys.argv[1]

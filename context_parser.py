@@ -116,9 +116,10 @@ def find_all_biotope_contexts(data_set: DataSet, ontobiotope_file: str) -> \
                     if term_id in biotopes:
                         term = biotopes[term_id]
                         for is_a in term.is_as:
-                            # Check if is_a is already created
+                            # Check if is_a is already created and sentence is not already added
                             if is_a in biotope_contexts:
-                                biotope_contexts[is_a].add_sentence(context.sentence)
+                                if context.sentence not in biotope_contexts[is_a].sentences:
+                                    biotope_contexts[is_a].add_sentence(context.sentence)
                             else:
                                 biotope_contexts[is_a] = BiotopeFeatures("", context.sentence)
                                 # Clear surfaces
